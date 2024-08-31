@@ -236,6 +236,8 @@ bool GtkMainWnd::Create() {
   RTC_DCHECK(window_ == NULL);
 
   window_ = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  // Full screen
+  gtk_window_fullscreen(GTK_WINDOW(window_));
   if (window_) {
     gtk_window_set_position(GTK_WINDOW(window_), GTK_WIN_POS_CENTER);
     gtk_window_set_default_size(GTK_WINDOW(window_), 640, 480);
@@ -451,11 +453,12 @@ void GtkMainWnd::OnRedraw() {
       draw_area_ != NULL) {
     width_ = remote_renderer->width();
     height_ = remote_renderer->height();
+    RTC_LOG(LS_INFO) << __FUNCTION__ << "AUG width: " << width_ << " height: " << height_;
 
     if (!draw_buffer_.get()) {
-      draw_buffer_size_ = (width_ * height_ * 4) * 4;
+      draw_buffer_size_ = (width_ * height_) * 4;
       draw_buffer_.reset(new uint8_t[draw_buffer_size_]);
-      gtk_widget_set_size_request(draw_area_, width_ * 2, height_ * 2);
+      gtk_widget_set_size_request(draw_area_, width_, height_);
     }
 
     const uint32_t* image =
@@ -463,38 +466,38 @@ void GtkMainWnd::OnRedraw() {
     uint32_t* scaled = reinterpret_cast<uint32_t*>(draw_buffer_.get());
     for (int r = 0; r < height_; ++r) {
       for (int c = 0; c < width_; ++c) {
-        int x = c * 2;
-        scaled[x] = scaled[x + 1] = image[c];
+        // int x = c * 2;
+        scaled[r * width_ + c] = image[r * width_ + c];
       }
 
-      uint32_t* prev_line = scaled;
-      scaled += width_ * 2;
-      memcpy(scaled, prev_line, (width_ * 2) * 4);
+      // uint32_t* prev_line = scaled;
+      // scaled += width_ * 2;
+      // memcpy(scaled, prev_line, (width_ * 2) * 4);
 
-      image += width_;
-      scaled += width_ * 2;
+      // image += width_;
+      // scaled += width_ * 2;
     }
 
-    VideoRenderer* local_renderer = local_renderer_.get();
-    if (local_renderer && local_renderer->image()) {
-      image = reinterpret_cast<const uint32_t*>(local_renderer->image());
-      scaled = reinterpret_cast<uint32_t*>(draw_buffer_.get());
-      // Position the local preview on the right side.
-      scaled += (width_ * 2) - (local_renderer->width() / 2);
-      // right margin...
-      scaled -= 10;
-      // ... towards the bottom.
-      scaled += (height_ * width_ * 4) - ((local_renderer->height() / 2) *
-                                          (local_renderer->width() / 2) * 4);
-      // bottom margin...
-      scaled -= (width_ * 2) * 5;
-      for (int r = 0; r < local_renderer->height(); r += 2) {
-        for (int c = 0; c < local_renderer->width(); c += 2) {
-          scaled[c / 2] = image[c + r * local_renderer->width()];
-        }
-        scaled += width_ * 2;
-      }
-    }
+    // VideoRenderer* local_renderer = local_renderer_.get();
+    // if (local_renderer && local_renderer->image()) {
+    //   image = reinterpret_cast<const uint32_t*>(local_renderer->image());
+    //   scaled = reinterpret_cast<uint32_t*>(draw_buffer_.get());
+    //   // Position the local preview on the right side.
+    //   scaled += (width_ * 2) - (local_renderer->width() / 2);
+    //   // right margin...
+    //   scaled -= 10;
+    //   // ... towards the bottom.
+    //   scaled += (height_ * width_ * 4) - ((local_renderer->height() / 2) *
+    //                                       (local_renderer->width() / 2) * 4);
+    //   // bottom margin...
+    //   scaled -= (width_ * 2) * 5;
+    //   for (int r = 0; r < local_renderer->height(); r += 2) {
+    //     for (int c = 0; c < local_renderer->width(); c += 2) {
+    //       scaled[c / 2] = image[c + r * local_renderer->width()];
+    //     }
+    //     scaled += width_ * 2;
+    //   }
+    // }
 
     gtk_widget_queue_draw(draw_area_);
   }
@@ -505,10 +508,10 @@ void GtkMainWnd::OnRedraw() {
 void GtkMainWnd::Draw(GtkWidget* widget, cairo_t* cr) {
   cairo_format_t format = CAIRO_FORMAT_ARGB32;
   cairo_surface_t* surface = cairo_image_surface_create_for_data(
-      draw_buffer_.get(), format, width_ * 2, height_ * 2,
-      cairo_format_stride_for_width(format, width_ * 2));
+      draw_buffer_.get(), format, width_, height_,
+      cairo_format_stride_for_width(format, width_));
   cairo_set_source_surface(cr, surface, 0, 0);
-  cairo_rectangle(cr, 0, 0, width_ * 2, height_ * 2);
+  cairo_rectangle(cr, 0, 0, width_, height_);
   cairo_fill(cr);
   cairo_surface_destroy(surface);
 }
@@ -559,7 +562,7 @@ void GtkMainWnd::VideoRenderer::OnFrame(const webrtc::VideoFrame& video_frame) {
     buffer = webrtc::I420Buffer::Rotate(*buffer, video_frame.rotation());
   }
   SetSize(buffer->width(), buffer->height());
-
+  RTC_LOG(LS_INFO) << "Frame received " << video_frame.timestamp() << " " << rtc::TimeUTCMicros();
   // TODO(bugs.webrtc.org/6857): This conversion is correct for little-endian
   // only. Cairo ARGB32 treats pixels as 32-bit values in *native* byte order,
   // with B in the least significant byte of the 32-bit value. Which on
