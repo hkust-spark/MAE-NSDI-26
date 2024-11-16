@@ -82,3 +82,15 @@
 .gclient_*
 *.lib
 *.dll
+my_experiment/data
+my_experiment/fig
+my_experiment/qrcode
+my_experiment/rec
+my_experiment/res
+my_experiment/send
+my_experiment/ssim
+my_experiment/file
+my_experiment/code/detect.caffemodel
+my_experiment/code/detect.prototxt
+my_experiment/code/sr.prototxt
+my_experiment/code/sr.caffemodel
