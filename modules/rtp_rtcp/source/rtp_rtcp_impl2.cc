@@ -359,7 +359,9 @@ bool ModuleRtpRtcpImpl2::TrySendPacket(std::unique_ptr<RtpPacketToSend> packet,
   if (!is_flexfec) {
     rtp_sender_->sequencer.Sequence(*packet);
   }
-
+  if (packet->is_first_packet_of_frame()) {
+    RTC_LOG(LS_INFO) << "Time Stamp Start:" << packet->SequenceNumber() << ":" << rtc::TimeMillis();
+  }
   rtp_sender_->packet_sender.SendPacket(std::move(packet), pacing_info);
   return true;
 }

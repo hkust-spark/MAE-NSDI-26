@@ -199,6 +199,8 @@ For example:
 
 The pictures in the `sparkrtc/my_experiment/send/(video_name)` directory are all frames from the send video.
 
+Don't need to generate this seperately, the script can handle this.
+
 For example, add all frames of `video_0a86_qrcode.yuv` to
 
 `sparkrtc/my_experiment/send/video_0a86`
@@ -255,56 +257,25 @@ For example:
 3500,0.1
 ```
 
-## Usage
-
-The script can be run with different options to perform various tasks. The options are:
-
-1. gen_send_video: Generate video with QR codes.
-2. decode_recv_video: Decode received video and calculate metrics.
-3. show_fig: Generate figures from experiment results.
-4. send_and_recv: Send video and receive it, then process the results.
-
-#### **Generating Video with QR Codes**
-
-To generate a video with QR codes embedded in the frames:
-
-```bash
-python3 process_video_qrcode.py --option=gen_send_video --data=<video_name>
-```
-
-#### **Decoding Received Video**
-
-To decode the received video and calculate SSIM and delay:
-
-```bash
-python3 process_video_qrcode.py --option=decode_recv_video --data=<video_name>
-```
-
-#### **Generating Figures**
-
-To generate figures based on the experiment results:
-
-```bash
-python3 process_video_qrcode.py --option=show_fig --data=<video_name>
-```
-
-#### **Sending and Receiving Video**
-
-To send a video and receive it, then process the received video:
-
-```bash
-python process_video_qrcode.py --option=send_and_recv --data=<video_name> --loss_rate=<loss_rate> --method_val=<method_val> --method_type=<method_type> --burst_length=<burst_length>
-```
-
-## One-tap Experiments
+## One-tap Experiments Usage
 
 Using `sparkrtc/my_experiment/code/run.sh` can run several experiments at once to make the process easier.
 
 **Usage**
 
 ```bash
-./run.sh
+./run.sh [-i <video_name>] [-p <program_name>] [-s <{width}x{height}]
+./run.sh -i video_0a86 -p all -s 1920x1080"
 ```
+**Input**
+
+The script provides following inputs:
+
+•	<video_name>: prefix of input yuv file
+
+•	<program_name>: the program will be run, including all(run all following programs), gen_send_video, send_and_recv, decode_recv_video and show_fig"
+
+•	<size>: (optional) custormize input file width and height, default is 1920x1080
 
 **Parameters**
 
@@ -323,6 +294,55 @@ The script uses the following parameters:
 •	In the example, for method_type=1, method_val ranges from 1 to 3 (These can all be modified).
 
 •	data=video_0a86: The dataset used for the experiment.
+
+## Detailed Usage
+
+The process_video_qrcode.py can be run with different options to perform various tasks. The options are:
+
+1. gen_send_video: Generate video with QR codes.
+2. send_and_recv: Send video and receive it, then process the results.
+3. decode_recv_video: Decode received video and calculate metrics.
+4. show_fig: Generate figures from experiment results.
+
+#### **Generating Video with QR Codes**
+
+To generate a video with QR codes embedded in the frames:
+
+```bash
+./run.sh -i <video_name> -p gen_send_video
+or
+python3 process_video_qrcode.py --option=gen_send_video --data=<video_name>
+```
+
+#### **Sending and Receiving Video**
+
+To send a video and receive it, then process the received video:
+
+```bash
+./run.sh -i <video_name> -p send_and_recv
+or
+python process_video_qrcode.py --option=send_and_recv --data=<video_name> --loss_rate=<loss_rate> --method_val=<method_val> --method_type=<method_type> --burst_length=<burst_length>
+```
+
+#### **Decoding Received Video**
+
+To decode the received video and calculate SSIM and delay:
+
+```bash
+./run.sh -i <video_name> -p decode_recv_video
+or
+python3 process_video_qrcode.py --option=decode_recv_video --data=<video_name>
+```
+
+#### **Generating Figures**
+
+To generate figures based on the experiment results:
+
+```bash
+./run.sh -i <video_name> -p show_fig
+or
+python3 process_video_qrcode.py --option=show_fig --data=<video_name>
+```
 
 ## Output Results
 
@@ -346,26 +366,29 @@ project_root/
 │   │   ├── recon.yuv
 │   │   ├── recv.log
 │   │   ├── send.log
-│   │   ├── raw_frames/
-│   │   │   └── frame<frame_number>.png
-│   │   └── res_frames/
-│   │       └── frames<qrcode_number>.png
+│   │   └── raw_frames/
+│   │       └── frames<frame_number>.png
 ├── res/
 │   ├── <video_name>/
 │   │   ├── ssim/
-│   │   │   ├── delay.log
 │   │   │   ├── ssim.log
 │   │   │   └── tmp/
 │   │   │       └── <frame_number>.log
-│   │   └── x264/
-│   │       ├── naive/
-│   │       │   └── <loss_rate>_<method_val>.log
-│   │       └── deadline_aware/
-│   │           └── <loss_rate>_<method_val>.log
+│   │   ├── psnr/
+│   │   │   ├── psnr.log
+│   │   │   └── tmp/
+│   │   │       └── <frame_number>.log
+│   │   ├── x264/
+│   │   │   ├── naive/
+│   │   │   │   └── <loss_rate>_<method_val>.log
+│   │   │   └── deadline_aware/
+│   │   │       └── <loss_rate>_<method_val>.log
+│   │   └── delay.log
 ├── fig/
 │   ├── <video_name>/
-│   │   ├── experiment_dot_plot.png
-│   │   └── experiment_error_plot.png
+│   │   ├── delay.png
+│   │   ├── ssim.png
+│   │   └── psnr.png
 └── file/
     ├── loss_trace
     └── warning.log
@@ -403,13 +426,13 @@ project_root/
 
 Directory: `fig/<video_name>/`
 
-1. **Dot Plot (**`experiment_dot_plot.png`):
+1. **Dot Plot (**`delay.png`):
 
-​	•	Description: Plot showing SSIM loss vs load time with annotations for different thresholds.
+​	•	Description: Plot showing delay vs frame_index.
 
-2. **Error Plot** (`experiment_error_plot.png`):
+2. **Error Plot** (`ssim.png`):
 
-​	•	Description: Plot showing SSIM loss vs load time with error bars.
+​	•	Description: Plot showing SSIM vs frame_index.
 
 ## *Appendix: **Detailed Description***
 
