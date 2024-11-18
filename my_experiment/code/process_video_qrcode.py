@@ -323,10 +323,13 @@ def send_and_recv_video(cfg):
     server_process = start_process(server_command)
     time.sleep(1)
 
-    recv_process = start_process(mahimahi_command)
+    # if enalbe mahimahi, need to explicit set server_ip and port
+    # recv_process = start_process(mahimahi_command)
+    # recv_process.stdin.write(recv_command.encode())
+    # recv_process.stdin.flush()
+    # time.sleep(1)
 
-    recv_process.stdin.write(recv_command.encode())
-    recv_process.stdin.flush()
+    recv_process = start_process(recv_command)
     time.sleep(1)
 
     send_process = start_process(send_command, send_log_file)
