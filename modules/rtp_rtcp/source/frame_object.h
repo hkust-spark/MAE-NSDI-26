@@ -52,6 +52,8 @@ class RtpFrameObject : public EncodedFrame {
 
   uint8_t* mutable_data() { return image_buffer_->data(); }
 
+  size_t image_size() { return image_buffer_->size(); }
+
   const std::vector<uint32_t>& Csrcs() const { return csrcs_; }
 
   void SetFirstSeqNum(uint16_t first_seq_num) {

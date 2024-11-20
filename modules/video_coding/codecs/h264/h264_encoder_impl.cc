@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <limits>
 #include <string>
+#include <chrono>
+#include <ctime>
 
 #include "absl/strings/match.h"
 #include "absl/types/optional.h"
@@ -468,6 +470,7 @@ int32_t H264EncoderImpl::RegisterEncodeCompleteCallback(
   return WEBRTC_VIDEO_CODEC_OK;
 }
 
+static int set_rate_count = 0;
 void H264EncoderImpl::SetRates(const RateControlParameters& parameters) {
   if (encoder_ == NULL) {
     RTC_LOG(LS_WARNING) << "SetRates() while uninitialized.";
@@ -492,19 +495,26 @@ void H264EncoderImpl::SetRates(const RateControlParameters& parameters) {
   //   size_t stream_idx = encoders_.size() - 1;
   for (size_t i = 0; i < 1; ++i) {
     // Update layer config.
-    RTC_LOG(LS_INFO) << "SetRates, stream " << i << " target_bitrate "
-                     << parameters.bitrate.GetSpatialLayerSum(0)
-                     << " framerate " << parameters.framerate_fps;
+    // RTC_LOG(LS_INFO) << "SetRates, stream " << i << " target_bitrate "
+    //                  << parameters.bitrate.GetSpatialLayerSum(0)
+    //                  << " framerate " << parameters.framerate_fps;
     configurations_[i].target_bps = parameters.bitrate.GetSpatialLayerSum(0);
     configurations_[i].max_frame_rate = parameters.framerate_fps;
 
     if (configurations_[i].target_bps) {
       int bitrate_kbps = configurations_[i].target_bps / 1000;
-      RTC_LOG(LS_INFO) << "SetRates, stream " << i << " target_bitrate "
+      auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+      int vbv_size = parameters.framerate_fps;
+      RTC_LOG(LS_INFO) << "Send Statistics SetRates, stream " << i << " target_bitrate "
                        << bitrate_kbps << " framerate "
-                       << parameters.framerate_fps;
+                       << parameters.framerate_fps << " current time: " << current_time
+                       << " vbv buffer size: " << bitrate_kbps * vbv_size / parameters.framerate_fps;
       configurations_[i].SetStreamState(true);
       param_.rc.i_bitrate = bitrate_kbps;
+      if (set_rate_count > 5) {
+        param_.rc.i_vbv_buffer_size = bitrate_kbps * vbv_size / parameters.framerate_fps;
+      }
+      set_rate_count++;
       param_.i_fps_num = static_cast<int>(parameters.framerate_fps);
       x264_encoder_reconfig(encoder_, &param_);
       // Update h264 encoder.
@@ -612,6 +622,8 @@ int32_t H264EncoderImpl::Encode(
     int n_nal = 0;
     int i_frame_size =
         x264_encoder_encode(encoder_, &nal_t_, &n_nal, &pic_, &pic_out_);
+    auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    RTC_LOG(LS_INFO) << "Send Statistics Send Frame Size: " << i_frame_size << " current time: " << current_time;
     if (i_frame_size < 0) {
       // WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceVideoCoding, -1,
       //              "H264EncoderImpl::Encode() fails to encode %d",
