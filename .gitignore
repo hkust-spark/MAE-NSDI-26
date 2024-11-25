@@ -83,6 +83,6 @@
 *.lib
 *.dll
 my_experiment/*
-!my_experiment/kill_suspend_peer_process.sh
-!my_experiment/process_video_qrcode.sh
-!my_experiment/run.sh
+!my_experiment/code/kill_suspend_peer_process.sh
+!my_experiment/code/process_video_qrcode.sh
+!my_experiment/code/run.sh
