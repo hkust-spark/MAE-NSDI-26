@@ -11,6 +11,11 @@
 #include "rtc_base/logging.h"
 
 #include <string.h>
+#include <iostream>
+#include <chrono>
+#include <sstream>
+#include <ctime>
+#include <iomanip>
 
 #if RTC_LOG_ENABLED()
 
@@ -87,6 +92,21 @@ webrtc::Mutex& GetLoggingLock() {
 
 std::string LogLineRef::DefaultLogLine() const {
   rtc::StringBuilder log_output;
+
+  auto now = std::chrono::system_clock::now();
+  std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+  auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()) % 1000000;
+  std::tm *local_time = std::localtime(&now_c);
+  std::stringstream date;
+  std::stringstream time;
+  // date << 1900 + local_time->tm_year << "/"
+  date  << 1 + local_time->tm_mon << "/"
+        << local_time->tm_mday << "_";
+  time << std::setw(2) << std::setfill('0') << local_time->tm_hour << ":"
+        << std::setw(2) << std::setfill('0') << local_time->tm_min << ":"
+        << std::setw(2) << std::setfill('0') << local_time->tm_sec;
+  log_output << "[" << date.str() << time.str() << "." << ms.count() << "." << ns.count() << "]";
   if (timestamp_ != webrtc::Timestamp::MinusInfinity()) {
     // TODO(kwiberg): Switch to absl::StrFormat, if binary size is ok.
     char timestamp[50];  // Maximum string length of an int64_t is 20.
