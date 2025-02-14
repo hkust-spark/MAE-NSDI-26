@@ -48,8 +48,8 @@ namespace {
 // const bool kOpenH264EncoderDetailedLogging = false;
 
 // QP scaling thresholds.
-static const int kLowH264QpThreshold = 24;
-static const int kHighH264QpThreshold = 37;
+static const int kLowH264QpThreshold = 26;
+static const int kHighH264QpThreshold = 35;
 
 // Used by histograms. Values of entries should not be changed.
 enum H264EncoderImplEvent {
@@ -289,7 +289,7 @@ int32_t H264EncoderImpl::InitEncode(const VideoCodec* inst,
   
   memset(&param_, 0, sizeof(param_));
   x264_param_default(&param_);
-  int ret_val = x264_param_default_preset(&param_, "ultrafast", "zerolatency");
+  int ret_val = x264_param_default_preset(&param_, "superfast", "zerolatency");
   if (ret_val != 0) {
     RTC_LOG(LS_ERROR)
         << "H264EncoderImpl::InitEncode() fails to initialize encoder ret_val "
@@ -307,8 +307,12 @@ int32_t H264EncoderImpl::InitEncode(const VideoCodec* inst,
   param_.i_frame_total = 0;  
   param_.i_keyint_max = 1500;
   param_.rc.i_rc_method = X264_RC_ABR;
+  // param_.rc.i_rc_method = X264_RC_CRF;
+  // param_.rc.f_rf_constant = 23;
   param_.rc.i_vbv_max_bitrate = bitrate_kbps;
   param_.rc.i_vbv_buffer_size = bitrate_kbps;
+  param_.rc.i_qp_min = kLowH264QpThreshold;
+  param_.rc.i_qp_max = kHighH264QpThreshold;
   // param_.i_bframe = 0;
   // param_.b_open_gop = 0;
   // param_.i_bframe_pyramid = 0;
@@ -503,17 +507,8 @@ void H264EncoderImpl::SetRates(const RateControlParameters& parameters) {
 
     if (configurations_[i].target_bps) {
       int bitrate_kbps = configurations_[i].target_bps / 1000;
-      auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-      int vbv_size = parameters.framerate_fps;
-      RTC_LOG(LS_INFO) << "Send Statistics SetRates, stream " << i << " target_bitrate "
-                       << bitrate_kbps << " framerate "
-                       << parameters.framerate_fps << " current time: " << current_time
-                       << " vbv buffer size: " << bitrate_kbps * vbv_size / parameters.framerate_fps;
       configurations_[i].SetStreamState(true);
       param_.rc.i_bitrate = bitrate_kbps;
-      if (set_rate_count > 5) {
-        param_.rc.i_vbv_buffer_size = bitrate_kbps * vbv_size / parameters.framerate_fps;
-      }
       set_rate_count++;
       param_.i_fps_num = static_cast<int>(parameters.framerate_fps);
       x264_encoder_reconfig(encoder_, &param_);
@@ -547,6 +542,7 @@ int32_t H264EncoderImpl::Encode(
 
   rtc::scoped_refptr<I420BufferInterface> frame_buffer =
       input_frame.video_frame_buffer()->ToI420();
+
   if (!frame_buffer) {
     RTC_LOG(LS_ERROR) << "Failed to convert "
                       << VideoFrameBufferTypeToString(

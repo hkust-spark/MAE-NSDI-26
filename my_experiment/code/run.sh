@@ -57,10 +57,13 @@ do
 	do
 		filename=$(basename -- "$file")
 		filename="${filename%.*}"
+		filename="static_1mbps"
+		# filename="10s_10to1mbps"
+		filename="10s_10to1_until_300s"
 
 		for times in $(seq $run_loop)
 		do
-			output_dir="${filename}/vbv_bitrate_${times}"
+			output_dir="${filename}/vbv_bitratre_${times}"
 			echo "$output_dir"
 			if [ $run_program == "gen_send_video" ]; then
 				python3 process_video_qrcode.py --option=gen_send_video --data=$video_name --height=$height --width=$width
