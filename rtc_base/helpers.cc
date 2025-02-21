@@ -94,6 +94,31 @@ RandomGenerator& Rng() {
 
 }  // namespace
 
+static double g_vbv_buffer_ratio = 1.0;
+static int g_min_qp = 2;
+static int g_max_qp = 51;
+
+void SetVBVBufferRatio(double ratio) {
+  g_vbv_buffer_ratio = ratio;
+}
+
+void SetQPBounds(int min_qp, int max_qp) {
+  g_min_qp = min_qp;
+  g_max_qp = max_qp;
+}
+
+double GetVBVBufferRatio() {
+  return g_vbv_buffer_ratio;
+}
+
+int GetMinQP() {
+  return g_min_qp;
+}
+
+int GetMaxQP() {
+  return g_max_qp;
+}
+
 void SetDefaultRandomGenerator() {
   webrtc::MutexLock lock(&GetRandomGeneratorLock());
   GetGlobalRng().reset(new SecureRandomGenerator());

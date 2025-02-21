@@ -1718,6 +1718,10 @@ void VideoStreamEncoder::SetEncoderRates(
     return;
 
   if (rate_control_changed) {
+    int bitrate_kbps = rate_settings.rate_control.bitrate.GetSpatialLayerSum(0) / 1000;
+    RTC_LOG(LS_INFO) << "Send Statistics SetRates, stream 0 target_bitrate "
+                      << bitrate_kbps << " framerate "
+                      << rate_settings.rate_control.framerate_fps << " current time: " << rtc::TimeMillis();
     encoder_->SetRates(rate_settings.rate_control);
 
     encoder_stats_observer_->OnBitrateAllocationUpdated(
@@ -2435,6 +2439,7 @@ void VideoStreamEncoder::RunPostEncode(const EncodedImage& encoded_image,
 
   if (!frame_size.IsZero()) {
     frame_dropper_.Fill(frame_size.bytes(), !keyframe);
+    RTC_LOG(LS_INFO) << "Send Statistics Send Frame Size: " << frame_size.bytes() << " current time: " << rtc::TimeMillis();
   }
 
   stream_resource_manager_.OnEncodeCompleted(encoded_image, time_sent_us,

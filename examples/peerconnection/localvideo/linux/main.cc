@@ -22,6 +22,7 @@
 #include "rtc_base/physical_socket_server.h"
 #include "rtc_base/ssl_adapter.h"
 #include "rtc_base/thread.h"
+#include "rtc_base/helpers.h"
 #include "system_wrappers/include/field_trial.h"
 #include "test/field_trial.h"
 
@@ -30,6 +31,9 @@ std::string recon_filename;
 int local_video_width;
 int local_video_height;
 int local_video_fps;
+int local_min_qp;
+int local_max_qp;
+double local_vbv_buffer_ratio;
 bool is_sender = false;
 bool is_GUI = false;
 class CustomSocketServer : public rtc::PhysicalSocketServer {
@@ -128,8 +132,13 @@ int main(int argc, char* argv[]) {
   local_video_width = absl::GetFlag(FLAGS_width);
   local_video_height = absl::GetFlag(FLAGS_height);
   local_video_fps = absl::GetFlag(FLAGS_fps);
+  local_min_qp = absl::GetFlag(FLAGS_min_qp);
+  local_max_qp = absl::GetFlag(FLAGS_max_qp);
+  local_vbv_buffer_ratio = absl::GetFlag(FLAGS_vbv_buffer_ratio);
   is_GUI = absl::GetFlag(FLAGS_gui);
   
+  rtc::SetQPBounds(local_min_qp, local_max_qp);
+  rtc::SetVBVBufferRatio(local_vbv_buffer_ratio);
 
   bool autocall = false;
   if (local_video_filename != "NONE") {

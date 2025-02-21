@@ -19,6 +19,9 @@ extern const uint16_t kDefaultServerPort;  // From defaults.[h|cc]
 const uint16_t kDefaultHeight = 1080;
 const uint16_t kDefaultWidth = 1920;
 const uint16_t kDefaultFps = 30;
+const uint16_t kMinQp = 2;
+const uint16_t kMaxQp = 51;
+const double kDefaultVbvBufferRatio = 1.0;
 const bool kDefaultisGUI = false;
 // Define flags for the peerconnect_client testing tool, in a separate
 // header file so that they can be shared across the different main.cc's
@@ -42,6 +45,12 @@ ABSL_FLAG(int,width,kDefaultWidth,"The width of the video file to stream to the 
 ABSL_FLAG(int,fps,kDefaultFps,"The fps of the video file to stream to the peer.");
 
 ABSL_FLAG(bool,gui,kDefaultisGUI,"Graphical User Interface");
+
+ABSL_FLAG(int,min_qp,kMinQp,"The minimum QP value for the encoder.");
+
+ABSL_FLAG(int,max_qp,kMaxQp,"The maximum QP value for the encoder.");
+
+ABSL_FLAG(double,vbv_buffer_ratio,kDefaultVbvBufferRatio,"The VBV buffer ratio for the encoder.");
 
 ABSL_FLAG(int,
           port,

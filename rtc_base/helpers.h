@@ -87,6 +87,16 @@ double CreateRandomDouble();
 // value and the current value.
 double GetNextMovingAverage(double prev_average, double cur, double ratio);
 
+void SetVBVBufferRatio(double ratio);
+
+void SetQPBounds(int min_qp, int max_qp);
+
+double GetVBVBufferRatio();
+
+int GetMinQP();
+
+int GetMaxQP();
+
 }  // namespace rtc
 
 #endif  // RTC_BASE_HELPERS_H_

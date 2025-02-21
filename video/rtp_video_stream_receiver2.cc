@@ -15,7 +15,6 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include <chrono>
 
 #include "absl/algorithm/container.h"
 #include "absl/memory/memory.h"
@@ -912,8 +911,7 @@ void RtpVideoStreamReceiver2::OnAssembledFrame(
   } else if (frame_transformer_delegate_) {
     frame_transformer_delegate_->TransformFrame(std::move(frame));
   } else {
-    auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    RTC_LOG(LS_INFO) << "Time Stamp End:" << frame->first_seq_num() << ":" << frame->video_timing().receive_finish_ms << ":" << frame->image_size() << ":" << current_time;
+    RTC_LOG(LS_INFO) << "Time Stamp End:" << frame->first_seq_num() << ":" << frame->video_timing().receive_finish_ms;
     OnCompleteFrames(reference_finder_->ManageFrame(std::move(frame)));
   }
 }
