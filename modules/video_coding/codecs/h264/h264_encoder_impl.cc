@@ -33,6 +33,7 @@
 #include "rtc_base/checks.h"
 #include "rtc_base/logging.h"
 #include "rtc_base/time_utils.h"
+#include "rtc_base/helpers.h"
 #include "system_wrappers/include/metrics.h"
 #include "third_party/libyuv/include/libyuv/convert.h"
 #include "third_party/libyuv/include/libyuv/scale.h"
@@ -227,6 +228,7 @@ H264EncoderImpl::~H264EncoderImpl() {
 
 int32_t H264EncoderImpl::InitEncode(const VideoCodec* inst,
                                     const VideoEncoder::Settings& settings) {
+  RTC_LOG(LS_INFO) << "H264EncoderImpl::InitEncode minQP:" << rtc::GetMinQP() << " maxQP:" << rtc::GetMaxQP() << " vbvBufferRatio:" << rtc::GetVBVBufferRatio();
   ReportInit();
   if (!inst || inst->codecType != kVideoCodecH264) {
     ReportError();

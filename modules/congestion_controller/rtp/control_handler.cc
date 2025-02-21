@@ -67,8 +67,10 @@ absl::optional<TargetTransferRate> CongestionControlHandler::GetUpdate() {
                  PacingController::kMaxExpectedQueueLength.ms()) {
     pause_encoding = true;
   }
-  if (pause_encoding)
+  if (pause_encoding) {
     new_outgoing.target_rate = DataRate::Zero();
+    RTC_LOG(LS_INFO) << "CongestionControlHandler::GetUpdate() pause_encoding";
+  }
   if (!last_reported_ ||
       last_reported_->target_rate != new_outgoing.target_rate ||
       (!new_outgoing.target_rate.IsZero() &&
