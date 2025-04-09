@@ -54,7 +54,7 @@ namespace {
 const uint32_t kRtcpAnyExtendedReports = kRtcpXrReceiverReferenceTime |
                                          kRtcpXrDlrrReportBlock |
                                          kRtcpXrTargetBitrate;
-constexpr int32_t kDefaultVideoReportInterval = 1000;
+constexpr int32_t kDefaultVideoReportInterval = 30;
 constexpr int32_t kDefaultAudioReportInterval = 5000;
 }  // namespace
 
