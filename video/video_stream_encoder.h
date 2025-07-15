@@ -126,7 +126,8 @@ class VideoStreamEncoder : public VideoStreamEncoderInterface,
                         DataRate target_headroom,
                         uint8_t fraction_lost,
                         int64_t round_trip_time_ms,
-                        double cwnd_reduce_ratio) override;
+                        double cwnd_reduce_ratio,
+                        bool is_overused_for_encoder) override;
 
   DataRate UpdateTargetBitrate(DataRate target_bitrate,
                                double cwnd_reduce_ratio);
@@ -192,7 +193,9 @@ class VideoStreamEncoder : public VideoStreamEncoderInterface,
                         double framerate_fps,
                         DataRate bandwidth_allocation,
                         DataRate encoder_target,
-                        DataRate stable_encoder_target);
+                        DataRate stable_encoder_target,
+                        int64_t current_rtt,
+                        bool is_overused_for_encoder);
     bool operator==(const EncoderRateSettings& rhs) const;
     bool operator!=(const EncoderRateSettings& rhs) const;
 

@@ -240,7 +240,7 @@ bool GtkMainWnd::Create() {
   gtk_window_fullscreen(GTK_WINDOW(window_));
   if (window_) {
     gtk_window_set_position(GTK_WINDOW(window_), GTK_WIN_POS_CENTER);
-    gtk_window_set_default_size(GTK_WINDOW(window_), 640, 480);
+    gtk_window_set_default_size(GTK_WINDOW(window_), 1920, 1080);
     gtk_window_set_title(GTK_WINDOW(window_), "PeerConnection client");
     g_signal_connect(G_OBJECT(window_), "delete-event",
                      G_CALLBACK(&OnDestroyedCallback), this);

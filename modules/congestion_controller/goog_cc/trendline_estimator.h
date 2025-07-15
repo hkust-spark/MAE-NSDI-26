@@ -74,6 +74,10 @@ class TrendlineEstimator : public DelayIncreaseDetectorInterface {
 
   BandwidthUsage State() const override;
 
+  BandwidthUsage AggresiveState() const override {
+    return hypothesis_aggresive_;
+  }
+
   struct PacketTiming {
     PacketTiming(double arrival_time_ms,
                  double smoothed_delay_ms,
@@ -117,6 +121,7 @@ class TrendlineEstimator : public DelayIncreaseDetectorInterface {
   int overuse_counter_;
   BandwidthUsage hypothesis_;
   BandwidthUsage hypothesis_predicted_;
+  BandwidthUsage hypothesis_aggresive_;
   NetworkStatePredictor* network_state_predictor_;
 };
 }  // namespace webrtc

@@ -4,6 +4,8 @@
 #include "rtc_base/logging.h"
 #include "third_party/libyuv/include/libyuv.h"
 
+#include <unistd.h>
+
 extern std::string local_video_filename;
 extern int local_video_width;
 extern int local_video_height;
@@ -62,16 +64,30 @@ void WrappedDesktopCapturer::StartCapture() {
   // Start new thread to capture
   capture_thread_.reset(new std::thread([this]() {
     // dc_->Start(this);
+    // To make sure no frame is captured before the pipeline is ready.
+    RTC_LOG(LS_INFO) << "[WrappedDesktopCapturer::StartCapture()] Start capture";
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     while (start_flag_) {
       // dc_->CaptureFrame();
       std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps_));
       int total_frame = video_d->number_of_frames();
 
+      static int display_times = 0;
+      int expected_times = 1;
       if (frame_count_ >= total_frame) {
-        frame_count_ = 0;
+        if (display_times < expected_times) {
+          frame_count_ = 0;
+          display_times++;
+        } else {
+          usleep(20000000); // sleep 20 s
+          auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+          RTC_LOG(LS_INFO) << "End system: " << current_time;
+          exit(0);
+        }
       }
-        rtc::scoped_refptr<webrtc::I420BufferInterface> frame_buffer = video_d->GetFrame(frame_count_++);
+      RTC_LOG(LS_INFO) << "[WrappedDesktopCapturer::StartCapture()] capture frame: " << frame_count_;
+      rtc::scoped_refptr<webrtc::I420BufferInterface> frame_buffer = video_d->GetFrame(frame_count_++);
       
       webrtc::VideoFrame captureFrame =
         webrtc::VideoFrame::Builder()

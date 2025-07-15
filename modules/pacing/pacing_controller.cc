@@ -222,6 +222,9 @@ void PacingController::EnqueuePacket(std::unique_ptr<RtpPacketToSend> packet) {
     }
     UpdateBudgetWithElapsedTime(UpdateTimeAndGetElapsed(target_process_time));
   }
+  if (packet && packet->is_first_packet_of_frame()) {
+    RTC_LOG(LS_INFO) << "Pacer push frame:" << packet->SequenceNumber() << ":" << rtc::TimeMillis() << " current queue size: " << packet_queue_.SizeInPackets();
+  }
   packet_queue_.Push(now, std::move(packet));
   seen_first_packet_ = true;
 

@@ -49,8 +49,8 @@ namespace {
 // const bool kOpenH264EncoderDetailedLogging = false;
 
 // QP scaling thresholds.
-static const int kLowH264QpThreshold = 26;
-static const int kHighH264QpThreshold = 35;
+// static const int kLowH264QpThreshold = 26;
+// static const int kHighH264QpThreshold = 35;
 
 // Used by histograms. Values of entries should not be changed.
 enum H264EncoderImplEvent {
@@ -301,7 +301,9 @@ int32_t H264EncoderImpl::InitEncode(const VideoCodec* inst,
     return WEBRTC_VIDEO_CODEC_ERROR;
   }
 
-  int bitrate_kbps = 28000;
+  /* Configure non-default params */
+  param_.b_sliced_threads = 1;
+  param_.i_bitdepth = 8;
 
   param_.i_threads = 1;
   param_.i_width = inst->width;
@@ -311,10 +313,15 @@ int32_t H264EncoderImpl::InitEncode(const VideoCodec* inst,
   param_.rc.i_rc_method = X264_RC_ABR;
   // param_.rc.i_rc_method = X264_RC_CRF;
   // param_.rc.f_rf_constant = 23;
+
+  // TODO: -menghua how to set initial bitrate?
+  int bitrate_kbps = 3000;
+  param_.rc.i_bitrate = bitrate_kbps;
   param_.rc.i_vbv_max_bitrate = bitrate_kbps;
-  param_.rc.i_vbv_buffer_size = bitrate_kbps;
-  param_.rc.i_qp_min = kLowH264QpThreshold;
-  param_.rc.i_qp_max = kHighH264QpThreshold;
+  param_.rc.i_vbv_buffer_size = bitrate_kbps * 0.5;
+
+  param_.rc.i_qp_min = rtc::GetMinQP();
+  param_.rc.i_qp_max = rtc::GetMaxQP();
   // param_.i_bframe = 0;
   // param_.b_open_gop = 0;
   // param_.i_bframe_pyramid = 0;
@@ -329,7 +336,6 @@ int32_t H264EncoderImpl::InitEncode(const VideoCodec* inst,
 
   param_.b_vfr_input = 0;
   param_.b_repeat_headers = 1;  // sps, pps
-  param_.rc.i_bitrate = bitrate_kbps;
   /* Apply profile restrictions. */
   ret_val = x264_param_apply_profile(&param_, "baseline");
   if (ret_val != 0) {
@@ -501,9 +507,6 @@ void H264EncoderImpl::SetRates(const RateControlParameters& parameters) {
   //   size_t stream_idx = encoders_.size() - 1;
   for (size_t i = 0; i < 1; ++i) {
     // Update layer config.
-    // RTC_LOG(LS_INFO) << "SetRates, stream " << i << " target_bitrate "
-    //                  << parameters.bitrate.GetSpatialLayerSum(0)
-    //                  << " framerate " << parameters.framerate_fps;
     configurations_[i].target_bps = parameters.bitrate.GetSpatialLayerSum(0);
     configurations_[i].max_frame_rate = parameters.framerate_fps;
 
@@ -512,7 +515,7 @@ void H264EncoderImpl::SetRates(const RateControlParameters& parameters) {
       configurations_[i].SetStreamState(true);
       param_.rc.i_bitrate = bitrate_kbps;
       set_rate_count++;
-      param_.i_fps_num = static_cast<int>(parameters.framerate_fps);
+      param_.i_fps_num = 30;//static_cast<int>(parameters.framerate_fps);
       x264_encoder_reconfig(encoder_, &param_);
       // Update h264 encoder.
       //   SBitrateInfo target_bitrate;
@@ -544,7 +547,6 @@ int32_t H264EncoderImpl::Encode(
 
   rtc::scoped_refptr<I420BufferInterface> frame_buffer =
       input_frame.video_frame_buffer()->ToI420();
-
   if (!frame_buffer) {
     RTC_LOG(LS_ERROR) << "Failed to convert "
                       << VideoFrameBufferTypeToString(
@@ -620,8 +622,6 @@ int32_t H264EncoderImpl::Encode(
     int n_nal = 0;
     int i_frame_size =
         x264_encoder_encode(encoder_, &nal_t_, &n_nal, &pic_, &pic_out_);
-    auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    RTC_LOG(LS_INFO) << "Send Statistics Send Frame Size: " << i_frame_size << " current time: " << current_time;
     if (i_frame_size < 0) {
       // WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceVideoCoding, -1,
       //              "H264EncoderImpl::Encode() fails to encode %d",
@@ -660,6 +660,7 @@ int32_t H264EncoderImpl::Encode(
       h264_bitstream_parser_.ParseBitstream(encoded_images_[i]);
       encoded_images_[i].qp_ =
           h264_bitstream_parser_.GetLastSliceQp().value_or(-1);
+      RTC_LOG(LS_INFO) << "[H264EncoderImpl::Encode] frame qp: " << encoded_images_[i].qp_;
 
       // Deliver encoded image.
       CodecSpecificInfo codec_specific;
@@ -727,7 +728,7 @@ VideoEncoder::EncoderInfo H264EncoderImpl::GetEncoderInfo() const {
   info.supports_native_handle = false;
   info.implementation_name = "OpenH264";
   info.scaling_settings =
-      VideoEncoder::ScalingSettings(kLowH264QpThreshold, kHighH264QpThreshold);
+      VideoEncoder::ScalingSettings(rtc::GetMinQP(), rtc::GetMaxQP());
   info.is_hardware_accelerated = false;
   info.supports_simulcast = true;
   info.preferred_pixel_formats = {VideoFrameBuffer::Type::kI420};

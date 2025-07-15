@@ -558,8 +558,10 @@ VideoStreamEncoder::EncoderRateSettings::EncoderRateSettings(
     double framerate_fps,
     DataRate bandwidth_allocation,
     DataRate encoder_target,
-    DataRate stable_encoder_target)
-    : rate_control(bitrate, framerate_fps, bandwidth_allocation),
+    DataRate stable_encoder_target,
+    int64_t current_rtt,
+    bool is_overused_for_encoder)
+    : rate_control(bitrate, framerate_fps, bandwidth_allocation, current_rtt, is_overused_for_encoder),
       encoder_target(encoder_target),
       stable_encoder_target(stable_encoder_target) {}
 
@@ -1322,7 +1324,7 @@ void VideoStreamEncoder::ReconfigureEncoder() {
   OnEncoderSettingsChanged();
 
   if (encoder_initialized_) {
-    RTC_LOG(LS_VERBOSE) << " max bitrate " << codec.maxBitrate
+    RTC_LOG(LS_INFO) << " max bitrate " << codec.maxBitrate
                         << " start bitrate " << codec.startBitrate
                         << " max frame rate " << codec.maxFramerate
                         << " max payload size " << max_data_payload_length_;
@@ -1362,7 +1364,10 @@ void VideoStreamEncoder::ReconfigureEncoder() {
   // Force-disable frame dropper if either:
   //  * We have screensharing with layers.
   //  * "WebRTC-FrameDropper" field trial is "Disabled".
-  force_disable_frame_dropper_ =
+
+  // Disable frame drop
+  bool disable_drop = true;
+  force_disable_frame_dropper_ = disable_drop ||
       field_trials_.IsDisabled(kFrameDropperFieldTrial) ||
       (num_layers > 1 && codec.mode == VideoCodecMode::kScreensharing);
 
@@ -1603,8 +1608,11 @@ bool VideoStreamEncoder::EncoderPaused() const {
   // pacer queue has grown too large in buffered mode.
   // If the pacer queue has grown too large or the network is down,
   // `last_encoder_rate_settings_->encoder_target` will be 0.
-  return !last_encoder_rate_settings_ ||
-         last_encoder_rate_settings_->encoder_target == DataRate::Zero();
+  // return !last_encoder_rate_settings_ ||
+  //        last_encoder_rate_settings_->encoder_target == DataRate::Zero();
+
+  // Disable frame drop
+  return false;
 }
 
 void VideoStreamEncoder::TraceFrameDropStart() {
@@ -1652,7 +1660,7 @@ VideoStreamEncoder::UpdateBitrateAllocation(
   if (bitrate_adjuster_) {
     VideoBitrateAllocation adjusted_allocation =
         bitrate_adjuster_->AdjustRateAllocation(new_rate_settings.rate_control);
-    RTC_LOG(LS_VERBOSE) << "Adjusting allocation, fps = "
+    RTC_LOG(LS_INFO) << "Adjusting allocation, fps = "
                         << rate_settings.rate_control.framerate_fps << ", from "
                         << new_allocation.ToString() << ", to "
                         << adjusted_allocation.ToString();
@@ -1672,9 +1680,10 @@ uint32_t VideoStreamEncoder::GetInputFramerateFps() {
       frame_cadence_adapter_ ? frame_cadence_adapter_->GetInputFrameRateFps()
                              : absl::nullopt;
   if (!input_fps || *input_fps == 0) {
+    RTC_LOG(LS_INFO) << "[VideoStreamEncoder::GetInputFramerateFps()] use default_fps:" << default_fps;
     return default_fps;
   }
-  return *input_fps;
+  return 30;//*input_fps;
 }
 
 void VideoStreamEncoder::SetEncoderRates(
@@ -1874,7 +1883,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
       !encoder_info_.has_trusted_rate_controller;
   frame_dropper_.Enable(frame_dropping_enabled);
   if (frame_dropping_enabled && frame_dropper_.DropFrame()) {
-    RTC_LOG(LS_VERBOSE)
+    RTC_LOG(LS_INFO)
         << "Drop Frame: "
            "target bitrate "
         << (last_encoder_rate_settings_
@@ -2251,6 +2260,8 @@ DataRate VideoStreamEncoder::UpdateTargetBitrate(DataRate target_bitrate,
                                                  double cwnd_reduce_ratio) {
   RTC_DCHECK_RUN_ON(&encoder_queue_);
   DataRate updated_target_bitrate = target_bitrate;
+  // Disable frame drop
+  cwnd_reduce_ratio = 0;
 
   // Drop frames when congestion window pushback ratio is larger than 1
   // percent and target bitrate is larger than codec min bitrate.
@@ -2279,17 +2290,18 @@ void VideoStreamEncoder::OnBitrateUpdated(DataRate target_bitrate,
                                           DataRate link_allocation,
                                           uint8_t fraction_lost,
                                           int64_t round_trip_time_ms,
-                                          double cwnd_reduce_ratio) {
+                                          double cwnd_reduce_ratio,
+                                          bool is_overused_for_encoder) {
   RTC_DCHECK_GE(link_allocation, target_bitrate);
   if (!encoder_queue_.IsCurrent()) {
     encoder_queue_.PostTask([this, target_bitrate, stable_target_bitrate,
                              link_allocation, fraction_lost, round_trip_time_ms,
-                             cwnd_reduce_ratio] {
+                             cwnd_reduce_ratio, is_overused_for_encoder] {
       DataRate updated_target_bitrate =
           UpdateTargetBitrate(target_bitrate, cwnd_reduce_ratio);
       OnBitrateUpdated(updated_target_bitrate, stable_target_bitrate,
                        link_allocation, fraction_lost, round_trip_time_ms,
-                       cwnd_reduce_ratio);
+                       cwnd_reduce_ratio, is_overused_for_encoder);
     });
     return;
   }
@@ -2308,23 +2320,25 @@ void VideoStreamEncoder::OnBitrateUpdated(DataRate target_bitrate,
 
   RTC_DCHECK(sink_) << "sink_ must be set before the encoder is active.";
 
-  RTC_LOG(LS_VERBOSE) << "OnBitrateUpdated, bitrate " << target_bitrate.bps()
+  RTC_LOG(LS_INFO) << "OnBitrateUpdated, bitrate " << target_bitrate.bps()
                       << " stable bitrate = " << stable_target_bitrate.bps()
                       << " link allocation bitrate = " << link_allocation.bps()
                       << " packet loss " << static_cast<int>(fraction_lost)
-                      << " rtt " << round_trip_time_ms;
+                      << " rtt " << round_trip_time_ms
+                      << " is_overused_for_encoder "
+                      << is_overused_for_encoder;
 
   if (encoder_) {
     encoder_->OnPacketLossRateUpdate(static_cast<float>(fraction_lost) / 256.f);
     encoder_->OnRttUpdate(round_trip_time_ms);
   }
 
-  uint32_t framerate_fps = GetInputFramerateFps();
+  uint32_t framerate_fps = 30;//GetInputFramerateFps();
   frame_dropper_.SetRates((target_bitrate.bps() + 500) / 1000, framerate_fps);
 
   EncoderRateSettings new_rate_settings{
       VideoBitrateAllocation(), static_cast<double>(framerate_fps),
-      link_allocation, target_bitrate, stable_target_bitrate};
+      link_allocation, target_bitrate, stable_target_bitrate, round_trip_time_ms, is_overused_for_encoder};
   SetEncoderRates(UpdateBitrateAllocation(new_rate_settings));
 
   if (target_bitrate.bps() != 0)
@@ -2342,7 +2356,7 @@ void VideoStreamEncoder::OnBitrateUpdated(DataRate target_bitrate,
       // A pending stored frame can be processed.
       int64_t pending_time_us =
           clock_->CurrentTime().us() - pending_frame_post_time_us_;
-      if (pending_time_us < kPendingFrameTimeoutMs * 1000)
+      if (pending_time_us < kPendingFrameTimeoutMs * 1000) {
         EncodeVideoFrame(*pending_frame_, pending_frame_post_time_us_);
       pending_frame_.reset();
     } else if (!video_is_suspended && !pending_frame_ &&
@@ -2356,6 +2370,8 @@ void VideoStreamEncoder::OnBitrateUpdated(DataRate target_bitrate,
 }
 
 bool VideoStreamEncoder::DropDueToSize(uint32_t source_pixel_count) const {
+  // Disable frame drop
+  return false;
   if (!encoder_ || !stream_resource_manager_.DropInitialFrames() ||
       !encoder_target_bitrate_bps_ ||
       !stream_resource_manager_.SingleActiveStreamPixels()) {

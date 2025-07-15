@@ -72,7 +72,6 @@ VideoCodec VideoCodecInitializer::VideoEncoderConfigToVideoCodec(
   video_codec.legacy_conference_mode =
       config.content_type == VideoEncoderConfig::ContentType::kScreen &&
       config.legacy_conference_mode;
-
   video_codec.SetFrameDropEnabled(config.frame_drop_enabled);
   video_codec.numberOfSimulcastStreams =
       static_cast<unsigned char>(streams.size());

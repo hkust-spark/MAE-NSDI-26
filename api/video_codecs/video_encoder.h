@@ -268,6 +268,11 @@ class RTC_EXPORT VideoEncoder {
     RateControlParameters(const VideoBitrateAllocation& bitrate,
                           double framerate_fps,
                           DataRate bandwidth_allocation);
+    RateControlParameters(const VideoBitrateAllocation& bitrate,
+                          double framerate_fps,
+                          DataRate bandwidth_allocation,
+                          int64_t current_rtt,
+                          bool is_overused_for_encoder);
     virtual ~RateControlParameters();
 
     // Target bitrate, per spatial/temporal layer.
@@ -285,6 +290,10 @@ class RTC_EXPORT VideoEncoder {
     // `bitrate.get_sum_bps()`, but may be higher if the application is not
     // network constrained.
     DataRate bandwidth_allocation;
+
+    int64_t current_rtt;
+
+    bool is_overused_for_encoder;
 
     bool operator==(const RateControlParameters& rhs) const;
     bool operator!=(const RateControlParameters& rhs) const;

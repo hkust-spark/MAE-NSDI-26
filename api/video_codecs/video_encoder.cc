@@ -284,6 +284,18 @@ VideoEncoder::RateControlParameters::RateControlParameters(
       framerate_fps(framerate_fps),
       bandwidth_allocation(bandwidth_allocation) {}
 
+VideoEncoder::RateControlParameters::RateControlParameters(
+    const VideoBitrateAllocation& bitrate,
+    double framerate_fps,
+    DataRate bandwidth_allocation,
+    int64_t current_rtt,
+    bool is_overused_for_encoder)
+    : bitrate(bitrate),
+      framerate_fps(framerate_fps),
+      bandwidth_allocation(bandwidth_allocation),
+      current_rtt(current_rtt),
+      is_overused_for_encoder(is_overused_for_encoder) {}
+
 bool VideoEncoder::RateControlParameters::operator==(
     const VideoEncoder::RateControlParameters& rhs) const {
   return std::tie(bitrate, framerate_fps, bandwidth_allocation) ==

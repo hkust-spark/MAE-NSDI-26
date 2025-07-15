@@ -119,6 +119,7 @@ std::unique_ptr<VideoStreamEncoder> CreateVideoStreamEncoder(
       task_queue_factory->CreateTaskQueue("EncoderQueue",
                                           TaskQueueFactory::Priority::NORMAL);
   TaskQueueBase* encoder_queue_ptr = encoder_queue.get();
+  RTC_LOG(LS_INFO) << "CreateVideoStreamEncoder: bitrate_allocation_callback_type:" << bitrate_allocation_callback_type << " = kVideoBitrateAllocationWhenScreenSharing:" << (bitrate_allocation_callback_type == VideoStreamEncoder::BitrateAllocationCallbackType::kVideoBitrateAllocationWhenScreenSharing ? 1 : 0);
   return std::make_unique<VideoStreamEncoder>(
       clock, num_cpu_cores, stats_proxy, encoder_settings,
       std::make_unique<OveruseFrameDetector>(stats_proxy),
