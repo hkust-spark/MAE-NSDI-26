@@ -2358,13 +2358,14 @@ void VideoStreamEncoder::OnBitrateUpdated(DataRate target_bitrate,
           clock_->CurrentTime().us() - pending_frame_post_time_us_;
       if (pending_time_us < kPendingFrameTimeoutMs * 1000) {
         EncodeVideoFrame(*pending_frame_, pending_frame_post_time_us_);
-      pending_frame_.reset();
-    } else if (!video_is_suspended && !pending_frame_ &&
-               encoder_paused_and_dropped_frame_) {
-      // A frame was enqueued during pause-state, but since it was a native
-      // frame we could not store it in `pending_frame_` so request a
-      // refresh-frame instead.
-      RequestRefreshFrame();
+        pending_frame_.reset();
+      } else if (!video_is_suspended && !pending_frame_ &&
+                encoder_paused_and_dropped_frame_) {
+        // A frame was enqueued during pause-state, but since it was a native
+        // frame we could not store it in `pending_frame_` so request a
+        // refresh-frame instead.
+        RequestRefreshFrame();
+      }
     }
   }
 }
@@ -2372,36 +2373,36 @@ void VideoStreamEncoder::OnBitrateUpdated(DataRate target_bitrate,
 bool VideoStreamEncoder::DropDueToSize(uint32_t source_pixel_count) const {
   // Disable frame drop
   return false;
-  if (!encoder_ || !stream_resource_manager_.DropInitialFrames() ||
-      !encoder_target_bitrate_bps_ ||
-      !stream_resource_manager_.SingleActiveStreamPixels()) {
-    return false;
-  }
+  // if (!encoder_ || !stream_resource_manager_.DropInitialFrames() ||
+  //     !encoder_target_bitrate_bps_ ||
+  //     !stream_resource_manager_.SingleActiveStreamPixels()) {
+  //   return false;
+  // }
 
-  int pixel_count = std::min(
-      source_pixel_count, *stream_resource_manager_.SingleActiveStreamPixels());
+  // int pixel_count = std::min(
+  //     source_pixel_count, *stream_resource_manager_.SingleActiveStreamPixels());
 
-  uint32_t bitrate_bps =
-      stream_resource_manager_.UseBandwidthAllocationBps().value_or(
-          encoder_target_bitrate_bps_.value());
+  // uint32_t bitrate_bps =
+  //     stream_resource_manager_.UseBandwidthAllocationBps().value_or(
+  //         encoder_target_bitrate_bps_.value());
 
-  absl::optional<VideoEncoder::ResolutionBitrateLimits> encoder_bitrate_limits =
-      GetEncoderInfoWithBitrateLimitUpdate(
-          encoder_->GetEncoderInfo(), encoder_config_, default_limits_allowed_)
-          .GetEncoderBitrateLimitsForResolution(pixel_count);
+  // absl::optional<VideoEncoder::ResolutionBitrateLimits> encoder_bitrate_limits =
+  //     GetEncoderInfoWithBitrateLimitUpdate(
+  //         encoder_->GetEncoderInfo(), encoder_config_, default_limits_allowed_)
+  //         .GetEncoderBitrateLimitsForResolution(pixel_count);
 
-  if (encoder_bitrate_limits.has_value()) {
-    // Use bitrate limits provided by encoder.
-    return bitrate_bps <
-           static_cast<uint32_t>(encoder_bitrate_limits->min_start_bitrate_bps);
-  }
+  // if (encoder_bitrate_limits.has_value()) {
+  //   // Use bitrate limits provided by encoder.
+  //   return bitrate_bps <
+  //          static_cast<uint32_t>(encoder_bitrate_limits->min_start_bitrate_bps);
+  // }
 
-  if (bitrate_bps < 300000 /* qvga */) {
-    return pixel_count > 320 * 240;
-  } else if (bitrate_bps < 500000 /* vga */) {
-    return pixel_count > 640 * 480;
-  }
-  return false;
+  // if (bitrate_bps < 300000 /* qvga */) {
+  //   return pixel_count > 320 * 240;
+  // } else if (bitrate_bps < 500000 /* vga */) {
+  //   return pixel_count > 640 * 480;
+  // }
+  // return false;
 }
 
 void VideoStreamEncoder::OnVideoSourceRestrictionsUpdated(
