@@ -57,14 +57,14 @@ int32_t VideoRenderFrames::AddFrame(VideoFrame&& new_frame) {
       new_frame.render_time_ms() + kOldRenderTimestampMS < time_now) {
     RTC_LOG(LS_WARNING) << "Too old frame, timestamp=" << new_frame.timestamp();
     ++frames_dropped_;
-    return -1;
+    // return -1;
   }
 
   if (new_frame.render_time_ms() > time_now + kFutureRenderTimestampMS) {
     RTC_LOG(LS_WARNING) << "Frame too long into the future, timestamp="
                         << new_frame.timestamp();
     ++frames_dropped_;
-    return -1;
+    // return -1;
   }
 
   if (new_frame.render_time_ms() < last_render_time_ms_) {
@@ -74,7 +74,7 @@ int32_t VideoRenderFrames::AddFrame(VideoFrame&& new_frame) {
     // For more details, see bug:
     // https://bugs.chromium.org/p/webrtc/issues/detail?id=7253
     ++frames_dropped_;
-    return -1;
+    // return -1;
   }
 
   last_render_time_ms_ = new_frame.render_time_ms();

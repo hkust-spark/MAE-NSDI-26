@@ -57,7 +57,7 @@ constexpr TimeDelta kLossUpdateInterval = TimeDelta::Millis(1000);
 // the number of bytes that can be transmitted per interval.
 // Increasing this factor will result in lower delays in cases of bitrate
 // overshoots from the encoder.
-constexpr float kDefaultPaceMultiplier = 2.5f;
+// constexpr float kDefaultPaceMultiplier = 2.5f;
 
 // If the probe result is far below the current throughput estimate
 // it's unlikely that the probe is accurate, so we don't want to drop too far.
@@ -144,8 +144,9 @@ GoogCcNetworkController::GoogCcNetworkController(NetworkControllerConfig config,
       last_loss_based_target_rate_(*config.constraints.starting_rate),
       last_pushback_target_rate_(last_loss_based_target_rate_),
       last_stable_target_rate_(last_loss_based_target_rate_),
-      pacing_factor_(config.stream_based_config.pacing_factor.value_or(
-          kDefaultPaceMultiplier)),
+      // pacing_factor_(config.stream_based_config.pacing_factor.value_or(
+          // kDefaultPaceMultiplier)),
+      pacing_factor_(100.0f),
       min_total_allocated_bitrate_(
           config.stream_based_config.min_total_allocated_bitrate.value_or(
               DataRate::Zero())),
@@ -323,7 +324,7 @@ NetworkControlUpdate GoogCcNetworkController::OnStreamsConfig(
 
   bool pacing_changed = false;
   if (msg.pacing_factor && *msg.pacing_factor != pacing_factor_) {
-    pacing_factor_ = *msg.pacing_factor;
+    pacing_factor_ = 100.0f;//*msg.pacing_factor;
     pacing_changed = true;
   }
   if (msg.min_total_allocated_bitrate &&

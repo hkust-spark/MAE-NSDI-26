@@ -327,7 +327,7 @@ int32_t H264EncoderImpl::InitEncode(const VideoCodec* inst,
   // param_.i_bframe_pyramid = 0;
   // param_.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
 
-  param_.i_log_level = X264_LOG_DEBUG;
+  param_.i_log_level = X264_LOG_INFO;
   param_.i_fps_den = 1;
   param_.i_fps_num = 30;
 
@@ -514,8 +514,18 @@ void H264EncoderImpl::SetRates(const RateControlParameters& parameters) {
       int bitrate_kbps = configurations_[i].target_bps / 1000;
       configurations_[i].SetStreamState(true);
       param_.rc.i_bitrate = bitrate_kbps;
+      param_.rc.i_vbv_max_bitrate = bitrate_kbps;
+      param_.rc.i_vbv_buffer_size = bitrate_kbps * rtc::GetVBVBufferRatio();
+      // if (parameters.is_overused_for_encoder) {
+      //   param_.rc.i_vbv_buffer_size = bitrate_kbps * 0.04;
+      // }
       set_rate_count++;
       param_.i_fps_num = 30;//static_cast<int>(parameters.framerate_fps);
+      RTC_LOG(LS_INFO) << "H264EncoderImpl::SetRates() "
+                 << "target_bps: " << param_.rc.i_bitrate
+                 << " max_bitrate: " << param_.rc.i_vbv_max_bitrate
+                 << " vbv_buffer_size: " << param_.rc.i_vbv_buffer_size
+                 << " fps_num: " << param_.i_fps_num;
       x264_encoder_reconfig(encoder_, &param_);
       // Update h264 encoder.
       //   SBitrateInfo target_bitrate;
