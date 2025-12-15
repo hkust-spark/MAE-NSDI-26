@@ -320,6 +320,12 @@ int32_t H264EncoderImpl::InitEncode(const VideoCodec* inst,
   param_.rc.i_vbv_max_bitrate = bitrate_kbps;
   param_.rc.i_vbv_buffer_size = bitrate_kbps * 0.5;
 
+  int codec_choose = rtc::GetCodecChoose();
+  if (codec_choose == 5) {
+    param_.rc.b_filler = 1;
+    param_.rc.i_vbv_buffer_size = bitrate_kbps * 0.04;
+  }
+
   param_.rc.i_qp_min = rtc::GetMinQP();
   param_.rc.i_qp_max = rtc::GetMaxQP();
   // param_.i_bframe = 0;
@@ -524,7 +530,7 @@ void H264EncoderImpl::SetRates(const RateControlParameters& parameters) {
         if (parameters.is_overused_for_encoder > overuse_threshold) {
           vbv_ratio = 0.04;
         }
-      } else if (codec_mode == 3) {
+      } else if (codec_mode == 3 || codec_mode == 5) {
         // salsify
         vbv_ratio = 0.04;
       } else if (codec_mode != 2) {
