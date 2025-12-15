@@ -289,7 +289,7 @@ VideoEncoder::RateControlParameters::RateControlParameters(
     double framerate_fps,
     DataRate bandwidth_allocation,
     int64_t current_rtt,
-    bool is_overused_for_encoder)
+    double is_overused_for_encoder)
     : bitrate(bitrate),
       framerate_fps(framerate_fps),
       bandwidth_allocation(bandwidth_allocation),

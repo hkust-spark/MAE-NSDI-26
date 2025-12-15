@@ -560,7 +560,7 @@ VideoStreamEncoder::EncoderRateSettings::EncoderRateSettings(
     DataRate encoder_target,
     DataRate stable_encoder_target,
     int64_t current_rtt,
-    bool is_overused_for_encoder)
+    double is_overused_for_encoder)
     : rate_control(bitrate, framerate_fps, bandwidth_allocation, current_rtt, is_overused_for_encoder),
       encoder_target(encoder_target),
       stable_encoder_target(stable_encoder_target) {}
@@ -2291,7 +2291,7 @@ void VideoStreamEncoder::OnBitrateUpdated(DataRate target_bitrate,
                                           uint8_t fraction_lost,
                                           int64_t round_trip_time_ms,
                                           double cwnd_reduce_ratio,
-                                          bool is_overused_for_encoder) {
+                                          double is_overused_for_encoder) {
   RTC_DCHECK_GE(link_allocation, target_bitrate);
   if (!encoder_queue_.IsCurrent()) {
     encoder_queue_.PostTask([this, target_bitrate, stable_target_bitrate,

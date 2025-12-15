@@ -39,7 +39,7 @@ class DelayIncreaseDetectorInterface {
 
   virtual BandwidthUsage State() const = 0;
 
-  virtual BandwidthUsage AggresiveState() const = 0;
+  virtual double AggresiveState() const = 0;
 };
 
 }  // namespace webrtc

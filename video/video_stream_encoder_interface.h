@@ -122,7 +122,7 @@ class VideoStreamEncoderInterface {
                                 uint8_t fraction_lost,
                                 int64_t round_trip_time_ms,
                                 double cwnd_reduce_ratio,
-                                bool is_overused_for_encoder) = 0;
+                                double is_overused_for_encoder) = 0;
 
   // Set a FecControllerOverride, through which the encoder may override
   // decisions made by FecController.

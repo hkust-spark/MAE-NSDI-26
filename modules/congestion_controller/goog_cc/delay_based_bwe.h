@@ -87,7 +87,7 @@ class DelayBasedBwe {
   DataRate last_estimate() const { return prev_bitrate_; }
   BandwidthUsage last_state() const { return prev_state_; }
 
-  BandwidthUsage aggressive_state() const {
+  double aggressive_state() const {
     return active_delay_detector_->AggresiveState();
   }
 

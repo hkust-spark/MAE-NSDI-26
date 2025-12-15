@@ -74,7 +74,7 @@ class TrendlineEstimator : public DelayIncreaseDetectorInterface {
 
   BandwidthUsage State() const override;
 
-  BandwidthUsage AggresiveState() const override {
+  double AggresiveState() const override {
     return hypothesis_aggresive_;
   }
 
@@ -121,7 +121,7 @@ class TrendlineEstimator : public DelayIncreaseDetectorInterface {
   int overuse_counter_;
   BandwidthUsage hypothesis_;
   BandwidthUsage hypothesis_predicted_;
-  BandwidthUsage hypothesis_aggresive_;
+  double hypothesis_aggresive_;
   NetworkStatePredictor* network_state_predictor_;
 };
 }  // namespace webrtc

@@ -694,7 +694,7 @@ void GoogCcNetworkController::MaybeTriggerOnNetworkChanged(
     target_rate_msg.network_estimate.round_trip_time = round_trip_time;
     target_rate_msg.network_estimate.loss_rate_ratio = fraction_loss / 255.0f;
     target_rate_msg.network_estimate.bwe_period = bwe_period;
-    target_rate_msg.is_overused_for_encoder = delay_based_bwe_->aggressive_state() == BandwidthUsage::kBwOverusing;
+    target_rate_msg.is_overused_for_encoder = delay_based_bwe_->aggressive_state();
 
     update->target_rate = target_rate_msg;
 

@@ -224,7 +224,7 @@ struct TargetTransferRate {
   DataRate target_rate = DataRate::Zero();
   DataRate stable_target_rate = DataRate::Zero();
   double cwnd_reduce_ratio = 0;
-  bool is_overused_for_encoder = false;
+  double is_overused_for_encoder = 0.f;
 };
 
 // Contains updates of network controller comand state. Using optionals to

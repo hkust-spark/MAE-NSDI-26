@@ -40,7 +40,7 @@ struct BitrateAllocationUpdate {
   double cwnd_reduce_ratio = 0;
   // Only used for encoder, to reduce some parameters to
   // adapt to bitrate overuse ahead.
-  bool is_overused_for_encoder = false;
+  double is_overused_for_encoder = 0.f;
 };
 
 }  // namespace webrtc

@@ -30,6 +30,7 @@
 #include "rtc_base/experiments/struct_parameters_parser.h"
 #include "rtc_base/logging.h"
 #include "rtc_base/numerics/safe_minmax.h"
+#include "rtc_base/helpers.h"
 
 namespace webrtc {
 
@@ -187,7 +188,7 @@ TrendlineEstimator::TrendlineEstimator(
       overuse_counter_(0),
       hypothesis_(BandwidthUsage::kBwNormal),
       hypothesis_predicted_(BandwidthUsage::kBwNormal),
-      hypothesis_aggresive_(BandwidthUsage::kBwNormal),
+      hypothesis_aggresive_(1.0f),
       network_state_predictor_(network_state_predictor) {
   RTC_LOG(LS_INFO)
       << "Using Trendline filter for delay change estimation with settings "
@@ -291,7 +292,7 @@ BandwidthUsage TrendlineEstimator::State() const {
 void TrendlineEstimator::Detect(double trend, double ts_delta, int64_t now_ms) {
   if (num_of_deltas_ < 2) {
     hypothesis_ = BandwidthUsage::kBwNormal;
-    hypothesis_aggresive_ = BandwidthUsage::kBwNormal;
+    hypothesis_aggresive_ = 1.0f;
     return;
   }
   const double modified_trend =
@@ -328,9 +329,9 @@ void TrendlineEstimator::Detect(double trend, double ts_delta, int64_t now_ms) {
   }
   double kAggressiveRatio = 0.5;
   if (modified_trend > threshold_ * kAggressiveRatio) {
-    hypothesis_aggresive_ = BandwidthUsage::kBwOverusing;
+    hypothesis_aggresive_ = modified_trend / (threshold_ * kAggressiveRatio);
   } else {
-    hypothesis_aggresive_ = BandwidthUsage::kBwNormal;
+    hypothesis_aggresive_ = 1.0f;
   }
   RTC_LOG(LS_INFO) << "[TrendlineEstimator::Detect] "
                    << "trend: " << trend
@@ -342,7 +343,7 @@ void TrendlineEstimator::Detect(double trend, double ts_delta, int64_t now_ms) {
                    << ", hypothesis_: " << static_cast<int>(hypothesis_)
                    << ", prev_trend_: " << prev_trend_
                    << ", hypothesis_aggresive_: "
-                   << static_cast<int>(hypothesis_aggresive_)
+                   << hypothesis_aggresive_
                    << ", threshold * kAggressiveRatio: "
                    << threshold_ * kAggressiveRatio;
   prev_trend_ = trend;
