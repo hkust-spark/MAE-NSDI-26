@@ -515,17 +515,33 @@ void H264EncoderImpl::SetRates(const RateControlParameters& parameters) {
       configurations_[i].SetStreamState(true);
       param_.rc.i_bitrate = bitrate_kbps;
       param_.rc.i_vbv_max_bitrate = bitrate_kbps;
-      param_.rc.i_vbv_buffer_size = bitrate_kbps * rtc::GetVBVBufferRatio();
-      // if (parameters.is_overused_for_encoder) {
-      //   param_.rc.i_vbv_buffer_size = bitrate_kbps * 0.04;
-      // }
+
+      int codec_mode = rtc::GetCodecChoose();
+      double vbv_ratio = 0.5;
+      if (codec_mode >= 4) {
+        // x264 adaptive
+        double overuse_threshold = 2.0;
+        if (parameters.is_overused_for_encoder > overuse_threshold) {
+          vbv_ratio = 0.04;
+        }
+      } else if (codec_mode == 3) {
+        // salsify
+        vbv_ratio = 0.04;
+      } else if (codec_mode != 2) {
+        // Error!
+        RTC_LOG(LS_ERROR) << "H264EncoderImpl::SetRates() invalid codec mode " << codec_mode;
+      }
+      param_.rc.i_vbv_buffer_size = bitrate_kbps * vbv_ratio;
+
       set_rate_count++;
       param_.i_fps_num = 30;//static_cast<int>(parameters.framerate_fps);
       RTC_LOG(LS_INFO) << "H264EncoderImpl::SetRates() "
                  << "target_bps: " << param_.rc.i_bitrate
                  << " max_bitrate: " << param_.rc.i_vbv_max_bitrate
                  << " vbv_buffer_size: " << param_.rc.i_vbv_buffer_size
-                 << " fps_num: " << param_.i_fps_num;
+                 << " fps_num: " << param_.i_fps_num
+                 << " overused_for_encoder: " << parameters.is_overused_for_encoder
+                 << " vbv_ratio: " << vbv_ratio;
       x264_encoder_reconfig(encoder_, &param_);
       // Update h264 encoder.
       //   SBitrateInfo target_bitrate;
@@ -670,7 +686,8 @@ int32_t H264EncoderImpl::Encode(
       h264_bitstream_parser_.ParseBitstream(encoded_images_[i]);
       encoded_images_[i].qp_ =
           h264_bitstream_parser_.GetLastSliceQp().value_or(-1);
-      RTC_LOG(LS_INFO) << "[H264EncoderImpl::Encode] frame qp: " << encoded_images_[i].qp_;
+      RTC_LOG(LS_INFO) << "[H264EncoderImpl::Encode] frame qp: " << encoded_images_[i].qp_
+      << " frame size: " << (double)i_frame_size * 8 * 30 / 1000.0;
 
       // Deliver encoded image.
       CodecSpecificInfo codec_specific;

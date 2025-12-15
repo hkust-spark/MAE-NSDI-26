@@ -97,9 +97,14 @@ RandomGenerator& Rng() {
 static double g_vbv_buffer_ratio = 1.0;
 static int g_min_qp = 2;
 static int g_max_qp = 51;
+static int g_codec_choose = 0; // 0: vp8, 1: av1 2: x264 original 3: Salsify 4: x264 adaptive 5: CBR
 
 void SetVBVBufferRatio(double ratio) {
   g_vbv_buffer_ratio = ratio;
+}
+
+void SetCodecChoose(int mode) {
+  g_codec_choose = mode;
 }
 
 void SetQPBounds(int min_qp, int max_qp) {
@@ -109,6 +114,10 @@ void SetQPBounds(int min_qp, int max_qp) {
 
 double GetVBVBufferRatio() {
   return g_vbv_buffer_ratio;
+}
+
+int GetCodecChoose() {
+  return g_codec_choose;
 }
 
 int GetMinQP() {

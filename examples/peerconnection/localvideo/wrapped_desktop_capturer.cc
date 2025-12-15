@@ -74,9 +74,9 @@ void WrappedDesktopCapturer::StartCapture() {
       int total_frame = video_d->number_of_frames();
 
       static int display_times = 0;
-      int expected_times = 0;
+      int repeat_times = 0;
       if (frame_count_ >= total_frame) {
-        if (display_times < expected_times) {
+        if (display_times < repeat_times) {
           frame_count_ = 0;
           display_times++;
         } else {

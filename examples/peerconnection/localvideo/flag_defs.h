@@ -22,6 +22,7 @@ const uint16_t kDefaultFps = 30;
 const uint16_t kMinQp = 2;
 const uint16_t kMaxQp = 51;
 const double kDefaultVbvBufferRatio = 1.0;
+const int kDefaultCodecChoose = 2; // 0: vp8, 1: av1 2: x264 original 3: Salsify 4: x264 adaptive 5: CBR
 const bool kDefaultisGUI = false;
 // Define flags for the peerconnect_client testing tool, in a separate
 // header file so that they can be shared across the different main.cc's
@@ -51,6 +52,8 @@ ABSL_FLAG(int,min_qp,kMinQp,"The minimum QP value for the encoder.");
 ABSL_FLAG(int,max_qp,kMaxQp,"The maximum QP value for the encoder.");
 
 ABSL_FLAG(double,vbv_buffer_ratio,kDefaultVbvBufferRatio,"The VBV buffer ratio for the encoder.");
+
+ABSL_FLAG(int,codec_choose,kDefaultCodecChoose,"The codec mode for the encoder. 0: vp8, 1: av1 2: x264 original 3: Salsify 4: x264 adaptive 5: CBR");
 
 ABSL_FLAG(int,
           port,
