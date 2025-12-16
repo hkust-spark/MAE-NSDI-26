@@ -1,0 +1,17 @@
+Results for data: Lecture
+============================================================
+MAE_salsify (Salsify):
+  Average VMAF: 74.8361
+  Average Tail Overall Delay: 49.4292
+  Number of trials: 3
+
+MAE_x264_adap (MAE):
+  Average VMAF: 87.8557
+  Average Tail Overall Delay: 192.8792
+  Number of trials: 3
+
+MAE_x264_ori (WebRTC+x264):
+  Average VMAF: 84.3023
+  Average Tail Overall Delay: 358.0250
+  Number of trials: 3
+

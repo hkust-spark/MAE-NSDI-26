@@ -126,3 +126,7 @@ do
 		fi
 	done # codec modes
 done # trace logs
+
+if [ $run_program == "all" ]; then
+	python3 GenerateFinalResullt.py --data=$video_name
+fi

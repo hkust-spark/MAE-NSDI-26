@@ -45,6 +45,16 @@ def gen_qrcode(cfg, num):
 def overlay_qrcode_to_video(cfg):
     video_path = "../data/" + cfg.data + ".yuv"
 
+    if not os.path.exists(video_path):
+        mp4_video_path = "../data/" + cfg.data + ".mp4"
+        if not os.path.exists(mp4_video_path):
+            sys.exit(f"Error: {video_path} not exsist!")
+        else:
+            os.system(f"ffmpeg -i {mp4_video_path} {video_path} -y")
+
+    if not os.path.exists(video_path):
+        sys.exit(f"Error: {video_path} not exsist!")
+
     file_stats = os.stat(video_path)
     i420_frame_size = 3 * cfg.width * cfg.height / 2
     frame_count = int(file_stats.st_size / i420_frame_size)
