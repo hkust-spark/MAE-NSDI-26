@@ -89,13 +89,25 @@ pip install opencv-contrib-python
 
 Using `sparkrtc/my_experiment/code/run.sh` can run the whole experiment at once to make the process easier.
 
+**Important: Configure IP Address**
+
+Before running experiments, you must update the server IP address in the code to match your machine's public IP address:
+
+1. Open `my_experiment/code/process_video_qrcode.py`
+2. Find the `send_and_recv()` function (around line 600)
+3. Update the `server_ip` variable to your machine's public IP address:
+   ```python
+   server_ip = "YOUR_PUBLIC_IP_ADDRESS"  # Change this to your machine's public IP
+   port = "8888"  # Port can be changed if needed
+   ```
+
 **Usage**
 
 ```bash
 cd my_experiment/code/
 ./run.sh -i Lecture -p all
 
-# The detial usage is:
+# The detailed usage is:
 # ./run.sh [-i <video_name>] [-p <program_name>] [-s <{width}x{height}]
 ```
 **Input**

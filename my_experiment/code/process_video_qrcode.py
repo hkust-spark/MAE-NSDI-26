@@ -597,7 +597,8 @@ def send_and_recv_video(cfg):
     client_bin = root_dir + "out/Default/peerconnection_localvideo"
     send_bin = root_dir + "out/Default/peerconnection_localvideo"
 
-    # Need to custormize ip and port
+    # Need to customize ip and port
+    # IMPORTANT: Change server_ip to your machine's public IP address
     server_ip = "143.89.192.45"
     port = "8888"
 
