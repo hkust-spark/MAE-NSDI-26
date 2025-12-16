@@ -13,6 +13,15 @@ git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 export PATH=/path/to/depot_tools:$PATH
 ```
 
+Then, install [x264](https://code.videolan.org/videolan/x264).
+
+```
+git clone https://code.videolan.org/videolan/x264
+./configure --enable-shared  --enable-static
+make
+make install
+```
+
 ## Getting the Code
 
 For desktop development:
