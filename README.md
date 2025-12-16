@@ -8,6 +8,10 @@ The WebRTC components have been optimized to best serve this purpose.
 ## Before You Start
 
 First, be sure to install the [depot_tools](https://www.chromium.org/developers/how-tos/install-depot-tools/).
+```
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH=/path/to/depot_tools:$PATH
+```
 
 ## Getting the Code
 
