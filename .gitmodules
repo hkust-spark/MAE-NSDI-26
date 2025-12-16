@@ -1,6 +1,6 @@
 [submodule "third_party/ffmpeg"]
 	path = third_party/ffmpeg
-	url = https://github.com/hkust-spark/ffmpeg
+	url = https://git.ffmpeg.org/gitweb/ffmpeg.git/commit/d4ff0020b40b524a490cf62eccbd3a318f4c0e58
 [submodule "third_party/openh264/src"]
 	path = third_party/openh264/src
-	url = https://github.com/hkust-spark/openh264
+	url = https://github.com/cisco/openh264
