@@ -29,13 +29,13 @@ For desktop development:
 Clone the current repo:
 
 ```
-git clone https://github.com/hkust-spark/sparkrtc.git
+git clone https://github.com/hkust-spark/MAE-NSDI-26.git
 ```
 
 Enter the root directory of the repo:
 
 ```
-cd ./sparkrtc
+cd ./MAE-NSDI-26
 git submodule update --init --recursive
 ```
 
@@ -100,7 +100,7 @@ pip install opencv-contrib-python
 
 ## One-tap Experiments Usage
 
-Using `sparkrtc/my_experiment/code/run.sh` can run the whole experiment at once to make the process easier.
+Using `MAE-NSDI-26/my_experiment/code/run.sh` can run the whole experiment at once to make the process easier.
 
 **Important: Configure IP Address**
 
