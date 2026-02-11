@@ -44,11 +44,26 @@ if [ -z "${video_name}" ] || [ -z "${run_program}" ]; then
 fi
 
 trace_logs_dir="../file/trace_logs"
+sudo iptables -F
 
 if [ $run_program == "gen_send_video" ] || [ $run_program == "all" ]; then
-	python3 process_video_qrcode.py --option=gen_send_video --data=$video_name --height=$height --width=$width
-  if [ $run_program == "gen_send_video" ]; then # only generate qrcode for input video
-	  exit 0
+  # check if already has qrcode video
+  if [ ! -f "../data/${video_name}_qrcode.yuv" ]; then
+    # check if contains yuv file
+    if [ ! -f "../data/${video_name}.yuv" ]; then
+      if [ -f "../data/${video_name}.mp4" ]; then
+      echo "converting mp4 to yuv"
+        ffmpeg -i "../data/${video_name}.mp4" "../data/${video_name}.yuv" -y
+      else
+        echo "input video not found, please check the video_name"
+        exit 1
+      fi
+    fi
+
+    python3 process_video_qrcode.py --option=gen_send_video --data=$video_name --height=$height --width=$width
+    if [ $run_program == "gen_send_video" ]; then # only generate qrcode for input video
+      exit 0
+    fi
   fi
 fi
 

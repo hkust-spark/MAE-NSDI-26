@@ -213,9 +213,9 @@ docker build -t mae-nsdi-26-env .
 
 Edit `my_experiment/code/process_video_qrcode.py` (in the `send_and_recv()` function, around line 600) and set:
 
-- **`root_directory`**: Absolute path to this repo on the host (e.g. `"/Users/you/MAE-NSDI-26"` or `"/home/you/MAE-NSDI-26"`). Replace the placeholder `"ABSOLUTE_PATH_TO_THIS_REPO"` with your path.
+- **`root_directory_for_vmaf_docker`**: Absolute path to this repo on the host (e.g. `"/Users/you/MAE-NSDI-26"` or `"/home/you/MAE-NSDI-26"`). Replace the placeholder `"ABSOLUTE_PATH_TO_THIS_REPO"` with your path.
 
-### 3. Run the container (one-tap experiment)
+### 3. Run the container
 
 From the repo root on the host:
 
@@ -234,6 +234,26 @@ Run the preparation script first (it sets up the environment, compiles and switc
 
 ```bash
 ./prepare.sh
-# VMAF step requires sudo
-sudo ./run.sh -i Lecture -p all
+
+# Enter 'mae' user shell
+cd /workspace/my_experiment/code/
+
+# password is 'mae'
+./run.sh -i Lecture -p all
 ```
+
+### Some common issues
+1. ERROR: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock
+   ```bash
+   newgrp docker
+   docker ps # test if succeed
+   ```
+2. Receiver cannot connect to server
+
+   mahimahi might change container's ip address. So first `docker run` the image, then
+   ```bash
+   mm-delay 10
+   ip addr
+   # copy the public ip of mahimahi container to `process_video_qrcode.py`
+   # then exit and rerun the docker
+   ```

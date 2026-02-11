@@ -368,7 +368,8 @@ def sync_frames(original_raw_frames_dir, rec_dir, res_dir, width, height):
     os.system(f'ffmpeg -s {width}x{height} -i {updated_send_file_prefix}.yuv -c:v libx264 -preset superfast -qp 0 -y {updated_send_file_prefix}.mp4')
 
 def calculate_vmaf_score(rec_dir, send_filename, rec_filename):
-    vmaf_command = f'docker run --rm -v {rec_dir}:/socket gfdavila/easyvmaf -r /socket/{send_filename}.mp4 -d /socket/{rec_filename}.mp4'
+    print(f'rec_dir: {rec_dir}')
+    vmaf_command = f'sudo docker run --rm -v {rec_dir}:/socket gfdavila/easyvmaf -r /socket/{send_filename}.mp4 -d /socket/{rec_filename}.mp4'
     os.system(vmaf_command)
 
 def generate_head_result(data, ratio):
@@ -394,13 +395,13 @@ def read_json_file(rec_dir, vmaf_score_file, f_overall_vmaf_score):
         f_overall_vmaf_score.write(f"{vmaf_mean},{vmaf_harmonic_mean},{generate_head_result(vmaf_scores, 0.1)},{generate_head_result(vmaf_scores, 0.2)},{generate_head_result(vmaf_scores, 0.3)},{generate_head_result(vmaf_scores, 0.5)}\n")
     return vmaf_scores
 
-def generate_vmaf_result(original_raw_frames_dir, rec_dir, res_dir, width, height, f_overall_vmaf_score):
+def generate_vmaf_result(original_raw_frames_dir, rec_dir, res_dir, width, height, f_overall_vmaf_score, recv_dir_for_vmaf_docker):
     vmaf_score_file = f'{res_dir}vmaf_score.log'
     if os.path.exists(vmaf_score_file):
         os.remove(vmaf_score_file)
 
     sync_frames(original_raw_frames_dir, rec_dir, res_dir, width, height)
-    calculate_vmaf_score(rec_dir, 'updated_send', 'updated_recon')
+    calculate_vmaf_score(recv_dir_for_vmaf_docker, 'updated_send', 'updated_recon')
 
     vmaf_scores = read_json_file(rec_dir, vmaf_score_file, f_overall_vmaf_score)
 
@@ -413,10 +414,12 @@ def generate_vmaf_result(original_raw_frames_dir, rec_dir, res_dir, width, heigh
 
     return vmaf_scores
 
-def decode_recv_video(cfg, root_directory):
+def decode_recv_video(cfg, root_directory_for_vmaf_docker):
     re_extract_images = True
+    root_directory = os.path.dirname(os.getcwd())
     recv_dir = root_directory + "/result/" + cfg.output_dir + "/rec/"
     res_dir = root_directory + "/result/" + cfg.output_dir + "/res/"
+    recv_dir_for_vmaf_docker = root_directory_for_vmaf_docker + "/my_experiment/result/" + cfg.output_dir + "/rec/"
 
     os.system("mkdir -p " + res_dir)
 
@@ -449,7 +452,7 @@ def decode_recv_video(cfg, root_directory):
 
     f_overall_vmaf_file = open('../overall_vmaf_score.log', 'a+')
     f_overall_vmaf_file.write(f"{cfg.data},{cfg.output_dir},")
-    vmaf_scores = generate_vmaf_result(send_raw_frames_dir, recv_dir, res_dir, cfg.width, cfg.height, f_overall_vmaf_file)
+    vmaf_scores = generate_vmaf_result(send_raw_frames_dir, recv_dir, res_dir, cfg.width, cfg.height, f_overall_vmaf_file, recv_dir_for_vmaf_docker)
 
     os.system("rm -rf " + recv_raw_frames_dir)
 
@@ -598,9 +601,9 @@ def send_and_recv_video(cfg):
 
     # Need to customize ip and port
     # IMPORTANT: Change server_ip to your machine's public IP address
-    server_ip = "100.64.10.1"
+    server_ip = "172.17.0.2"
     port = "8888"
-    root_directory = "ABSOLUTE_PATH_TO_THIS_REPO"
+    root_directory_for_vmaf_docker = "ABSOLUTE_PATH_TO_THIS_REPO"
 
     recv_dir = "../result/" + cfg.output_dir + "/rec/"
     recv_file = recv_dir + "recon.yuv"
@@ -633,7 +636,7 @@ def send_and_recv_video(cfg):
     kill_process(recv_process)
     kill_process(server_process)
 
-    delay, drop_frames_index, vmaf_scores, overall_delay = decode_recv_video(cfg, root_directory)
+    delay, drop_frames_index, vmaf_scores, overall_delay = decode_recv_video(cfg, root_directory_for_vmaf_docker)
     prefix = str(cfg.data) + ',' + str(words[1]) + ',' + str(words[2])
     converged, count, avg_delay, avg_tail_delay, avg_vmaf, avg_head_vmaf, avg_overall_delay, avg_tail_overall_delay = output_statistic_result(f_res_overal_file, f_result_csv_file, delay, drop_frames_index, prefix, vmaf_scores, overall_delay)
 

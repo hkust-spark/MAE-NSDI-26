@@ -138,8 +138,8 @@ def main():
             # Default style for other solutions
             plt.scatter(x, y, s=200, alpha=0.7, label=display_name)
 
-    plt.quiver(300, 75, -150, 10,color='gray',angles='xy', scale_units='xy', scale=3, width=0.01)
-    plt.text(270, 75.5, 'Better', fontsize=14, rotation= -49, color='gray', fontweight='bold')
+    # plt.quiver(300, 75, -150, 10,color='gray',angles='xy', scale_units='xy', scale=3, width=0.01)
+    # plt.text(270, 75.5, 'Better', fontsize=14, rotation= -49, color='gray', fontweight='bold')
 
     plt.xlabel('Average Tail Overall Delay (ms)')
     plt.ylabel('Average VMAF')
