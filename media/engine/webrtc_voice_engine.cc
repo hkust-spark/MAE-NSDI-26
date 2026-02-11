@@ -53,6 +53,7 @@
 #include "media/base/media_constants.h"
 #include "media/base/stream_params.h"
 #include "media/engine/adm_helpers.h"
+#include "modules/audio_device/include/fake_audio_device.h"
 #include "media/engine/payload_type_mapper.h"
 #include "media/engine/webrtc_media_engine.h"
 #include "modules/async_audio_processing/async_audio_processing.h"
@@ -403,10 +404,11 @@ void WebRtcVoiceEngine::Init() {
   }
 
 #if defined(WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE)
-  // No ADM supplied? Create a default one.
+  // No ADM supplied? Use fake ADM to avoid initializing real audio (e.g. PulseAudio).
   if (!adm_) {
-    adm_ = webrtc::AudioDeviceModule::Create(
-        webrtc::AudioDeviceModule::kPlatformDefaultAudio, task_queue_factory_);
+    // FakeAudioDeviceModule is intentionally non-refcounted; wrap raw pointer.
+    adm_ = rtc::scoped_refptr<webrtc::AudioDeviceModule>(
+        new webrtc::FakeAudioDeviceModule());
   }
 #endif  // WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE
   RTC_CHECK(adm());

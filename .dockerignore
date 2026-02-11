@@ -1,0 +1,18 @@
+# Keep build context small: ignore most of repo when building image.
+# The image only installs tools; the repo is mounted at runtime.
+.git
+.gclient*
+out
+base
+build
+testing
+third_party
+tools
+*.pyc
+__pycache__
+.cache
+.landmines
+*.ninja
+*.o
+*.a
+*.so
