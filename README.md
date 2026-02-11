@@ -38,6 +38,7 @@ Enter the root directory of the repo:
 cd ./MAE-NSDI-26
 git submodule update --init --recursive
 ```
+**We also provide a Docker image for easy environment deployment; for details, see the [Docker](#docker) section at the end of this README.**
 
 Sync with other WebRTC-related repos using the `gclient` tool installed before.
 
@@ -195,3 +196,44 @@ At the top level of `my_experiment/`, the following summary files are generated:
 - **`MAE_result.png`**: Final result figure showing VMAF vs. Tail Overall Delay comparison across all solutions, with:
   - Different markers for each solution (Salsify and WebRTC+x264 as empty circles, MAE as red star)
   - Arrow indicating the "better" direction (toward higher VMAF and lower delay)
+
+## Docker
+
+A Docker image is provided with all dependencies (depot_tools, x264, mahimahi, ffmpeg, Python/OpenCV) so you can avoid manual environment setup.
+
+### 1. Build the image
+
+From the repo root:
+
+```bash
+docker build -t mae-nsdi-26-env .
+```
+
+### 2. Configure before running experiments
+
+Edit `my_experiment/code/process_video_qrcode.py` (in the `send_and_recv()` function, around line 600) and set:
+
+- **`root_directory`**: Absolute path to this repo on the host (e.g. `"/Users/you/MAE-NSDI-26"` or `"/home/you/MAE-NSDI-26"`). Replace the placeholder `"ABSOLUTE_PATH_TO_THIS_REPO"` with your path.
+
+### 3. Run the container (one-tap experiment)
+
+From the repo root on the host:
+
+```bash
+docker run -it --rm --privileged --platform linux/amd64 \
+  -v "$(pwd)":/workspace \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e HOST_WORKSPACE="$(pwd)" \
+  --group-add $(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo 999) \
+  mae-nsdi-26-env
+```
+
+### 4. Inside the container
+
+Run the preparation script first (it sets up the environment, compiles and switches to the working directory). Then run the full experiment:
+
+```bash
+./prepare.sh
+# VMAF step requires sudo
+sudo ./run.sh -i Lecture -p all
+```

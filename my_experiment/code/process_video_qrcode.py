@@ -413,9 +413,8 @@ def generate_vmaf_result(original_raw_frames_dir, rec_dir, res_dir, width, heigh
 
     return vmaf_scores
 
-def decode_recv_video(cfg):
+def decode_recv_video(cfg, root_directory):
     re_extract_images = True
-    root_directory = os.path.dirname(os.getcwd()) + "/"
     recv_dir = root_directory + "result/" + cfg.output_dir + "/rec/"
     res_dir = root_directory + "result/" + cfg.output_dir + "/res/"
 
@@ -599,8 +598,9 @@ def send_and_recv_video(cfg):
 
     # Need to customize ip and port
     # IMPORTANT: Change server_ip to your machine's public IP address
-    server_ip = "143.89.192.45"
+    server_ip = "100.64.10.1"
     port = "8888"
+    root_directory = "ABSOLUTE_PATH_TO_THIS_REPO"
 
     recv_dir = "../result/" + cfg.output_dir + "/rec/"
     recv_file = recv_dir + "recon.yuv"
@@ -633,7 +633,7 @@ def send_and_recv_video(cfg):
     kill_process(recv_process)
     kill_process(server_process)
 
-    delay, drop_frames_index, vmaf_scores, overall_delay = decode_recv_video(cfg)
+    delay, drop_frames_index, vmaf_scores, overall_delay = decode_recv_video(cfg, root_directory)
     prefix = str(cfg.data) + ',' + str(words[1]) + ',' + str(words[2])
     converged, count, avg_delay, avg_tail_delay, avg_vmaf, avg_head_vmaf, avg_overall_delay, avg_tail_overall_delay = output_statistic_result(f_res_overal_file, f_result_csv_file, delay, drop_frames_index, prefix, vmaf_scores, overall_delay)
 
