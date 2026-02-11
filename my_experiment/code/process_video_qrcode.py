@@ -415,15 +415,15 @@ def generate_vmaf_result(original_raw_frames_dir, rec_dir, res_dir, width, heigh
 
 def decode_recv_video(cfg, root_directory):
     re_extract_images = True
-    recv_dir = root_directory + "result/" + cfg.output_dir + "/rec/"
-    res_dir = root_directory + "result/" + cfg.output_dir + "/res/"
+    recv_dir = root_directory + "/result/" + cfg.output_dir + "/rec/"
+    res_dir = root_directory + "/result/" + cfg.output_dir + "/res/"
 
     os.system("mkdir -p " + res_dir)
 
     recv_video_path = recv_dir + "recon.yuv"
     recv_raw_frames_dir = recv_dir + "raw_frames/"
 
-    send_raw_frames_dir = root_directory + "send/" + cfg.data + "/"
+    send_raw_frames_dir = root_directory + "/send/" + cfg.data + "/"
     receive_correspoding_file = res_dir + "receive_correspoding_index.log"
 
     if re_extract_images:
