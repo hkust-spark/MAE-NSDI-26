@@ -217,7 +217,21 @@ Edit `my_experiment/code/process_video_qrcode.py` (in the `send_and_recv()` func
 
 ### 3. Run the container
 
-From the repo root on the host:
+From the repo root on the host.
+
+**On Linux host** (so user `mae` can write under `/workspace` and ownership is restored on exit):
+
+```bash
+docker run -it --rm --privileged --platform linux/amd64 \
+  -v "$(pwd)":/workspace \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e HOST_WORKSPACE="$(pwd)" \
+  -e HOST_IS_LINUX=1 \
+  --group-add $(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo 999) \
+  mae-nsdi-26-env
+```
+
+**On macOS host** (omit `-e HOST_IS_LINUX=1` so the script does not change ownership of the bind-mounted repo):
 
 ```bash
 docker run -it --rm --privileged --platform linux/amd64 \

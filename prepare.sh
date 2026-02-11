@@ -9,8 +9,9 @@ ninja -C out/Default
 sudo adduser --disabled-password --gecos "" mae 2>/dev/null || true
 echo "mae:mae" | sudo chpasswd
 sudo usermod -aG sudo mae
-# Inside Docker: let mae write /workspace; restore original owner on exit so host edits keep working
-if [ -f /.dockerenv ] && [ -d /workspace ]; then
+# When host is Linux: let mae write /workspace in container; restore owner on exit so host edits keep working.
+# Skip when host is macOS (pass -e HOST_IS_LINUX=1 only on Linux; see README).
+if [ -f /.dockerenv ] && [ -d /workspace ] && [ "${HOST_IS_LINUX}" = "1" ]; then
   ORIG_OWNER=$(stat -c '%u:%g' /workspace)
   trap 'chown -R $ORIG_OWNER /workspace' EXIT
   chown -R mae:mae /workspace
